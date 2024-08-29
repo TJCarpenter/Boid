@@ -11,11 +11,13 @@ class Boid:
         angle = random.uniform(0, 2 * math.pi)
         speed = random.uniform(5, 10)
         self.velocity = Vector(math.cos(angle) * speed, math.sin(angle) * speed)
-
+        
+        self.radius = 5
         self.max_velocity = 3
         self.min_velocity = 1
         self.desired_separation = 15
         self.desired_neighbor_distance = 50
+        self.avoid_distance = 50
         self.border_margin = 50
         
         self.image = pygame.Surface((10, 10), pygame.SRCALPHA)
@@ -25,24 +27,13 @@ class Boid:
         v1 = self.separate(boids) * 0.3
         v2 = self.align(boids) * 0.25
         v3 = self.cohesion(boids) * 0.25
-        v4 = self.border_avoidance() * 0.125
+        v4 = self.contain() * 0.125
+        v5 = self.avoid()
         
-        self.velocity = self.velocity + v1 + v2 + v3 + v4
+        self.velocity = self.velocity + v1 + v2 + v3 + v4 + v5
         self.limit_velocity()
         self.position = self.position + self.velocity
 
-   
-    def border(self):
-        radius = 5  # Assuming the boid's radius is 5
-        if self.position.x < -radius:
-            self.position.x = 1000 + radius
-        elif self.position.x > 1000 + radius:
-            self.position.x = -radius
-        if self.position.y < -radius:
-            self.position.y = 1000 + radius
-        elif self.position.y > 1000 + radius:
-            self.position.y = -radius
-            
     def draw(self, screen):
         screen.blit(self.image, (self.position.x, self.position.y))
 
@@ -110,8 +101,9 @@ class Boid:
 
         return steer / 100
     
-    def border_avoidance(self):
+    def contain(self):
         steer = Vector(0, 0)
+
         if self.position.x < self.border_margin:
             steer.x += (self.border_margin - self.position.x) / self.border_margin
         elif self.position.x > 1000 - self.border_margin:
@@ -125,7 +117,15 @@ class Boid:
         return steer
 
                 
-                
-                
-                
+    def avoid(self):
+        steer = Vector(0, 0)
         
+        mouse = Vector(*pygame.mouse.get_pos())
+        distance = self.position.distance_to(mouse)
+
+        if distance < self.avoid_distance:
+            diff = self.position - mouse
+            diff /= distance
+            steer += diff
+
+        return steer
