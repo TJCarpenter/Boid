@@ -2,14 +2,19 @@ import pygame
 import random
 from boid import Boid
 from grid import Grid
+from preditor import Preditor
 
 WIDTH, HEIGHT = 1000, 1000
 NUM_BOIDS = 200
+NUM_PREDITORS = 4
 FPS = 60
 GRID_SIZE = 50
 
 def initialize_boids(num_boids, width, height):
     return [Boid(random.randint(51, width), random.randint(51, height)) for _ in range(num_boids)]
+
+def init_preditors(num_preditors, width, height):
+    return [Preditor(random.randint(51, width), random.randint(51, height)) for _ in range(num_preditors)]
 
 def update_boids(boids, grid, screen):
     grid.clear()
@@ -27,6 +32,10 @@ def main():
     clock = pygame.time.Clock()
 
     boids = initialize_boids(NUM_BOIDS, WIDTH, HEIGHT)
+    preditors = init_preditors(NUM_PREDITORS, WIDTH, HEIGHT)
+
+    boids = [*boids, *preditors]
+
     grid = Grid(WIDTH, HEIGHT, GRID_SIZE)
 
     running = True

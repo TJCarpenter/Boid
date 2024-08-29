@@ -1,4 +1,5 @@
 from vector import Vector
+from preditor import Preditor
 import pygame
 import random
 import math
@@ -28,7 +29,7 @@ class Boid:
         v2 = self.align(boids) * 0.25
         v3 = self.cohesion(boids) * 0.25
         v4 = self.contain() * 0.125
-        v5 = self.avoid()
+        v5 = self.avoid(boids)
         
         self.velocity = self.velocity + v1 + v2 + v3 + v4 + v5
         self.limit_velocity()
@@ -46,8 +47,9 @@ class Boid:
     def separate(self, boids):
         steer = Vector(0, 0)
         count = 0
+
         for boid in boids:
-            if boid is self:
+            if boid is self or not isinstance(boid, Boid):
                 continue
             
             distance = self.position.distance_to(boid.position)
@@ -69,7 +71,7 @@ class Boid:
         count = 0
 
         for boid in boids:
-            if boid is self:
+            if boid is self or not isinstance(boid, Boid):
                 continue
 
             if self.position.distance_to(boid.position) < self.desired_neighbor_distance:
@@ -89,6 +91,9 @@ class Boid:
         count = 0 
 
         for boid in boids:
+            if not isinstance(boid, Boid):
+                continue
+
             if self.position.distance_to(boid.position) < self.desired_neighbor_distance:
                 steer = steer + boid.position
                 count += 1
@@ -117,15 +122,21 @@ class Boid:
         return steer
 
                 
-    def avoid(self):
+    def avoid(self, boids):
         steer = Vector(0, 0)
-        
-        mouse = Vector(*pygame.mouse.get_pos())
-        distance = self.position.distance_to(mouse)
+        count = 0
 
-        if distance < self.avoid_distance:
-            diff = self.position - mouse
-            diff /= distance
-            steer += diff
+        for boid in boids:
+            if boid is self:
+                continue
+
+            distance = self.position.distance_to(boid.position)
+
+            if isinstance(boid, Preditor) and distance < self.avoid_distance:
+                diff = self.position - boid.position
+                diff /= distance
+                steer += diff
+
+                count += 1
 
         return steer
